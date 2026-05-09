@@ -90,8 +90,11 @@ class OpenClawBackup:
             res = subprocess.run(["openclaw", "--version"], capture_output=True, text=True)
             version = res.stdout.strip()
             if version:
-                # Replace spaces or weird chars just in case
-                return version.replace(" ", "-")
+                if version.lower().startswith("openclaw "):
+                    version = version[9:]
+                # Convert "2026.4.23 (a979721)" to "2026.4.23-a979721"
+                version = version.replace(" (", "-").replace(")", "").replace(" ", "-")
+                return version
         except:
             pass
         return "unknown"
