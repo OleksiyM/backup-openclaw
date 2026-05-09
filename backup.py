@@ -259,8 +259,8 @@ def main():
     parser.add_argument("--auto", action="store_true", help="Non-interactive mode")
     parser.add_argument("--upload", action="store_true", help="Force upload to R2")
     parser.add_argument("--encrypt", action="store_true", help="Force encryption")
-    parser.add_argument("--password", help="Password for encryption")
-    parser.add_argument("--password-file", help="Path to file containing password for encryption")
+    parser.add_argument("--password", metavar="TEXT", help="Password for encryption")
+    parser.add_argument("--password-file", metavar="PATH", help="Path to file containing password for encryption")
     
     args = parser.parse_args()
     try:
