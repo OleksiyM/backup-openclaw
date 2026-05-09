@@ -162,7 +162,7 @@ class OpenClawBackup:
 
         try:
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
-                progress.add_task(description="Compressing (tar | zstd -T0 -19)...", total=None)
+                progress.add_task(description="Compressing archive...", total=None)
                 
                 p_tar = subprocess.Popen(tar_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 p_zstd = subprocess.Popen(zstd_cmd, stdin=p_tar.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
