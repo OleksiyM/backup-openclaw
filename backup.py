@@ -221,7 +221,10 @@ class OpenClawBackup:
             should_upload = Confirm.ask("Upload to Cloudflare R2?", default=False)
 
         if should_upload:
-            self.upload_to_r2(final_archive_path)
+            if final_archive_path.suffix != '.gpg':
+                CONSOLE.print("\n[yellow]🔒 Security Block: Uploading unencrypted archives to R2 is prohibited. Skipping upload.[/yellow]")
+            else:
+                self.upload_to_r2(final_archive_path)
 
         CONSOLE.print(f"\n[bold green]✓ Backup completed successfully![/bold green] 🦞✨")
 
