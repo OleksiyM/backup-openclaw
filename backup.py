@@ -113,6 +113,12 @@ class OpenClawBackup:
             return str(path)
 
     def run(self):
+        try:
+            self._run_inner()
+        finally:
+            self.cleanup()
+
+    def _run_inner(self):
         oc_display = self._shorten_path(self.openclaw_path)
         CONSOLE.print(Panel.fit(f"[bold blue]OpenClaw Backup System[/bold blue]", subtitle=f"Target: {oc_display}"))
         
@@ -155,7 +161,6 @@ class OpenClawBackup:
             CONSOLE.print(f"  [bold cyan]✓ 📦 Packaged:[/bold cyan] [grey50]{display_archive_path}[/grey50]")
         except Exception as e:
             CONSOLE.print(f"[red]Error during compression: {str(e)}[/red]")
-            self.cleanup()
             sys.exit(1)
 
         # 3. Encryption (Optional)
@@ -172,7 +177,6 @@ class OpenClawBackup:
         if should_encrypt:
             if not self.password:
                 CONSOLE.print("[red]Error: Encryption requested but no password provided.[/red]")
-                self.cleanup()
                 sys.exit(1)
                 
             encrypted_path = final_archive_path.with_suffix(final_archive_path.suffix + ".gpg")
@@ -191,7 +195,6 @@ class OpenClawBackup:
                 CONSOLE.print(f"  [bold cyan]✓ 🔒 Encrypted:[/bold cyan] [grey50]{display_encrypted_path}[/grey50]")
             except subprocess.CalledProcessError as e:
                 CONSOLE.print(f"[red]Encryption failed: {e.stderr.decode()}[/red]")
-                self.cleanup()
                 sys.exit(1)
 
         # 4. R2 Upload
@@ -202,7 +205,6 @@ class OpenClawBackup:
         if should_upload:
             self.upload_to_r2(final_archive_path)
 
-        self.cleanup()
         CONSOLE.print(f"\n[bold green]✓ Backup completed successfully![/bold green] 🦞✨")
 
     def upload_to_r2(self, file_path: Path):
