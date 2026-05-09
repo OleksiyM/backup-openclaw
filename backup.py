@@ -60,8 +60,9 @@ class OpenClawBackup:
         self.backup_root = Path(os.getenv("BACKUP_DIR", DEFAULT_BACKUP_DIR)).expanduser()
         self.backup_root.mkdir(parents=True, exist_ok=True)
         
+        self.oc_version = self._get_openclaw_version()
         self.timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
-        self.archive_name = f"openclaw-{self.timestamp}.tar.zst"
+        self.archive_name = f"openclaw-{self.oc_version}-{self.timestamp}.tar.zst"
         self.temp_dir = Path(tempfile.mkdtemp(prefix="oc_backup_"))
         
         # R2 Config
@@ -84,6 +85,17 @@ class OpenClawBackup:
         if not self.password:
             self.password = os.getenv("BACKUP_PASSWORD")
 
+    def _get_openclaw_version(self) -> str:
+        try:
+            res = subprocess.run(["openclaw", "--version"], capture_output=True, text=True)
+            version = res.stdout.strip()
+            if version:
+                # Replace spaces or weird chars just in case
+                return version.replace(" ", "-")
+        except:
+            pass
+        return "unknown"
+
     def _get_system_info(self) -> str:
         info = [
             "# OpenClaw Backup Metadata",
@@ -92,11 +104,7 @@ class OpenClawBackup:
             f"OS: {os.uname().sysname} {os.uname().release}"
         ]
         
-        try:
-            res = subprocess.run(["openclaw", "--version"], capture_output=True, text=True)
-            info.append(f"OpenClaw Version: {res.stdout.strip()}")
-        except:
-            info.append("OpenClaw Version: Unknown")
+        info.append(f"OpenClaw Version: {self.oc_version}")
 
         try:
             res = subprocess.run(["node", "--version"], capture_output=True, text=True)
