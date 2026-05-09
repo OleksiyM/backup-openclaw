@@ -133,7 +133,8 @@ class OpenClawBackup:
         tar_cmd.extend(["-C", str(self.openclaw_path.parent), self.openclaw_path.name])
         tar_cmd.extend(["-cf", "-"])
 
-        zstd_cmd = ["zstd", "-T0", "-19", "-o", str(final_archive_path)]
+        partial_archive_path = final_archive_path.with_name(final_archive_path.name + ".partial")
+        zstd_cmd = ["zstd", "-T0", "-19", "-o", str(partial_archive_path)]
 
         try:
             with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
@@ -148,6 +149,8 @@ class OpenClawBackup:
 
                 if p_zstd.returncode != 0:
                     raise Exception(f"Zstd error: {stderr_zstd.decode()}")
+                
+                partial_archive_path.rename(final_archive_path)
             
             CONSOLE.print(f"  [bold cyan]✓ 📦 Packaged:[/bold cyan] [grey50]{display_archive_path}[/grey50]")
         except Exception as e:
@@ -173,14 +176,16 @@ class OpenClawBackup:
                 sys.exit(1)
                 
             encrypted_path = final_archive_path.with_suffix(final_archive_path.suffix + ".gpg")
+            partial_encrypted_path = encrypted_path.with_name(encrypted_path.name + ".partial")
             display_encrypted_path = self._shorten_path(encrypted_path)
-            gpg_cmd = ["gpg", "--batch", "--yes", "--symmetric", "--pinentry-mode", "loopback", "--passphrase-fd", "0", "--output", str(encrypted_path), str(final_archive_path)]
+            gpg_cmd = ["gpg", "--batch", "--yes", "--symmetric", "--pinentry-mode", "loopback", "--passphrase-fd", "0", "--output", str(partial_encrypted_path), str(final_archive_path)]
             
             try:
                 with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
                     progress.add_task(description="Encrypting archive...", total=None)
                     subprocess.run(gpg_cmd, input=self.password.encode('utf-8'), check=True, capture_output=True)
                 
+                partial_encrypted_path.rename(encrypted_path)
                 final_archive_path.unlink()
                 final_archive_path = encrypted_path
                 CONSOLE.print(f"  [bold cyan]✓ 🔒 Encrypted:[/bold cyan] [grey50]{display_encrypted_path}[/grey50]")
