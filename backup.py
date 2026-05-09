@@ -72,7 +72,17 @@ class OpenClawBackup:
         self.r2_prefix = os.getenv("R2_PREFIX", "").strip("/") # Folder inside bucket
         
         # Encryption
-        self.password = self.args.password or os.getenv("BACKUP_PASSWORD")
+        self.password = self.args.password
+        if not self.password and getattr(self.args, 'password_file', None):
+            try:
+                with open(self.args.password_file, 'r') as f:
+                    self.password = f.read().strip()
+            except Exception as e:
+                CONSOLE.print(f"[red]Error reading password file: {e}[/red]")
+                sys.exit(1)
+                
+        if not self.password:
+            self.password = os.getenv("BACKUP_PASSWORD")
 
     def _get_system_info(self) -> str:
         info = [
@@ -242,6 +252,7 @@ def main():
     parser.add_argument("--upload", action="store_true", help="Force upload to R2")
     parser.add_argument("--encrypt", action="store_true", help="Force encryption")
     parser.add_argument("--password", help="Password for encryption")
+    parser.add_argument("--password-file", help="Path to file containing password for encryption")
     
     args = parser.parse_args()
     try:

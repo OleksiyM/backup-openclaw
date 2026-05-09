@@ -40,7 +40,7 @@ sudo apt update && sudo apt install zstd gnupg
    cp .env.example .env
    nano .env
    ```
-   *Fill in your R2 credentials and set your `BACKUP_PASSWORD`.*
+   *Fill in your R2 credentials. For encryption, it is highly recommended to use a password file (`--password-file`) or interactive prompt. You can also set `BACKUP_PASSWORD` in `.env` as a convenience option, but storing secrets in plaintext dotfiles is less secure.*
 
 2. **Run the utility:**
    You can run it directly from the project directory:
@@ -75,7 +75,8 @@ To automatically run the backup every day at 2:00 AM, add this to your crontab (
 | `--auto` | Disables interactive prompts (uses `.env` settings). |
 | `--upload` | Forces upload to Cloudflare R2. |
 | `--encrypt` | Forces GPG encryption. |
-| `--password` | Allows passing the encryption password directly. |
+| `--password` | Allows passing the encryption password directly (not recommended). |
+| `--password-file` | Path to a file containing the encryption password (recommended for automation). |
 
 ## Archive Structure 📦
 
