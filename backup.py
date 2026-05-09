@@ -174,12 +174,12 @@ class OpenClawBackup:
                 
             encrypted_path = final_archive_path.with_suffix(final_archive_path.suffix + ".gpg")
             display_encrypted_path = self._shorten_path(encrypted_path)
-            gpg_cmd = ["gpg", "--batch", "--yes", "--symmetric", "--passphrase", self.password, "--output", str(encrypted_path), str(final_archive_path)]
+            gpg_cmd = ["gpg", "--batch", "--yes", "--symmetric", "--pinentry-mode", "loopback", "--passphrase-fd", "0", "--output", str(encrypted_path), str(final_archive_path)]
             
             try:
                 with Progress(SpinnerColumn(), TextColumn("[progress.description]{task.description}")) as progress:
                     progress.add_task(description="Encrypting archive...", total=None)
-                    subprocess.run(gpg_cmd, check=True, capture_output=True)
+                    subprocess.run(gpg_cmd, input=self.password.encode('utf-8'), check=True, capture_output=True)
                 
                 final_archive_path.unlink()
                 final_archive_path = encrypted_path
